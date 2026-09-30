@@ -803,7 +803,7 @@ class AppConfig {
      * Get feedback display setting
      */
     public function getCustomizationFeedback(): bool {
-        return $this->appConfig->getValueString($this->appName, $this->_customizationFeedback, "true") === "true";
+        return $this->appConfig->getValueString($this->appName, $this->_customizationFeedback, "false") === "true";
     }
 
     /**
