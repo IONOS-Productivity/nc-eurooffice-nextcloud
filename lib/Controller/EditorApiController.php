@@ -494,7 +494,7 @@ class EditorApiController extends OCSController {
             $exp = $now + $this->appConfig->getJwtExpiration() * 60;
             $params["iat"] = $iat;
             $params["exp"] = $exp;
-            $token = \Firebase\JWT\JWT::encode($params, $this->appConfig->getDocumentServerSecret(), "HS256");
+            $token = \OCA\Eurooffice\Vendor\Firebase\JWT\JWT::encode($params, $this->appConfig->getDocumentServerSecret(), "HS256");
             $params["token"] = $token;
         }
 

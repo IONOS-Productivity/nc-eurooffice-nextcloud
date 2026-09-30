@@ -107,7 +107,7 @@ class FontController extends Controller {
             'iat' => $now,
             'exp' => $now + self::JWT_TTL,
         ];
-        return \Firebase\JWT\JWT::encode($payload, $secret, 'HS256');
+        return \OCA\Eurooffice\Vendor\Firebase\JWT\JWT::encode($payload, $secret, 'HS256');
     }
 
     /**
