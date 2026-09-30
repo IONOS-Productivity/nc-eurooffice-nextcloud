@@ -639,7 +639,7 @@ class EditorController extends Controller {
             $exp = $now + $this->appConfig->getJwtExpiration() * 60;
             $response["iat"] = $iat;
             $response["exp"] = $exp;
-            $token = \Firebase\JWT\JWT::encode($response, $this->appConfig->getDocumentServerSecret(), "HS256");
+            $token = \OCA\Eurooffice\Vendor\Firebase\JWT\JWT::encode($response, $this->appConfig->getDocumentServerSecret(), "HS256");
             $response["token"] = $token;
         }
 
@@ -1042,7 +1042,7 @@ class EditorController extends Controller {
             $exp = $now + $this->appConfig->getJwtExpiration() * 60;
             $result["iat"] = $iat;
             $result["exp"] = $exp;
-            $token = \Firebase\JWT\JWT::encode($result, $this->appConfig->getDocumentServerSecret(), "HS256");
+            $token = \OCA\Eurooffice\Vendor\Firebase\JWT\JWT::encode($result, $this->appConfig->getDocumentServerSecret(), "HS256");
             $result["token"] = $token;
         }
 
@@ -1159,7 +1159,7 @@ class EditorController extends Controller {
             $exp = $now + $this->appConfig->getJwtExpiration() * 60;
             $result["iat"] = $iat;
             $result["exp"] = $exp;
-            $token = \Firebase\JWT\JWT::encode($result, $this->appConfig->getDocumentServerSecret(), "HS256");
+            $token = \OCA\Eurooffice\Vendor\Firebase\JWT\JWT::encode($result, $this->appConfig->getDocumentServerSecret(), "HS256");
             $result["token"] = $token;
         }
 
