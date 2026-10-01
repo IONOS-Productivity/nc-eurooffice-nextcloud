@@ -21,7 +21,8 @@
             "@composer bin all install --ansi",
             "\"vendor/bin/mozart\" compose",
             "composer dump-autoload"
-        ]
+        ],
+        "test": "../../vendor-bin/phpunit/vendor/bin/phpunit -c phpunit.xml"
     },
     "require": {
         "bamarni/composer-bin-plugin": "^1.8",
