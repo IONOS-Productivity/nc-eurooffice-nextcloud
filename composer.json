@@ -11,13 +11,8 @@
             "OCA\\Eurooffice\\": "./lib/"
         }
     },
-    "autoload-dev": {
-        "psr-4": {
-            "OCA\\Eurooffice\\Tests\\": "./tests/"
-        }
-    },
     "scripts": {
-        "test:unit": "phpunit --configuration phpunit.xml"
+        "test": "../../vendor-bin/phpunit/vendor/bin/phpunit -c phpunit.xml"
     },
     "require": {
         "firebase/php-jwt": "^7.0"
