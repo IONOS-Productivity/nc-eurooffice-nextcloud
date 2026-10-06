@@ -81,22 +81,28 @@ class EditorsCheck extends TimedJob {
 
         $this->logger->debug("Nextcloud Office check started by cron");
 
-        $wasSuccessful = $this->appConfig->settingsAreSuccessful();
+        $isSuccessful = $this->appConfig->settingsAreSuccessful();
         [$error, $version] = $this->documentService->checkDocServiceUrl();
 
-        if (!empty($error)) {
-            $this->logger->info("Nextcloud Office server is not available");
-            $this->appConfig->setSettingsError($error);
-            if ($wasSuccessful) {
-                $this->notifyAdmins();
-            }
-        } else {
-            if (!$wasSuccessful) {
-                $this->appConfig->setSettingsError("");
-                $this->logger->info("Nextcloud Office server is available again, error state cleared");
-            } else {
-                $this->logger->debug("Nextcloud Office server availability check is finished successfully");
-            }
+        if (empty($error) && $isSuccessful) {
+            $this->logger->debug("Nextcloud Office server availability check is finished successfully");
+            return;
+        }
+
+        if (empty($error)) {
+            // was failing, works again: clear the stored error
+            $this->appConfig->setSettingsError("");
+            $this->logger->info("Nextcloud Office server is available again, error state cleared");
+            return;
+        }
+
+        // still or newly failing: keep the latest error
+        $this->logger->info("Nextcloud Office server is not available");
+        $this->appConfig->setSettingsError($error);
+
+        if ($isSuccessful) {
+            // newly failing: notify only on the transition, not on every repeated failure
+            $this->notifyAdmins();
         }
     }
 
