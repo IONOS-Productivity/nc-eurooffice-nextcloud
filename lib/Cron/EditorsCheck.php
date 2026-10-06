@@ -69,10 +69,6 @@ class EditorsCheck extends TimedJob {
             $this->logger->debug("Settings are empty");
             return;
         }
-        if (!$this->appConfig->settingsAreSuccessful()) {
-            $this->logger->debug("Settings are not correct");
-            return;
-        }
         $fileUrl = $this->urlGenerator->linkToRouteAbsolute($this->appName . ".callback.emptyfile");
         if (!$this->appConfig->useDemo() && !empty($this->appConfig->getStorageUrl())) {
             $fileUrl = str_replace($this->urlGenerator->getAbsoluteURL("/"), $this->appConfig->getStorageUrl(), $fileUrl);
@@ -85,14 +81,28 @@ class EditorsCheck extends TimedJob {
 
         $this->logger->debug("Nextcloud Office check started by cron");
 
+        $isSuccessful = $this->appConfig->settingsAreSuccessful();
         [$error, $version] = $this->documentService->checkDocServiceUrl();
 
-        if (!empty($error)) {
-            $this->logger->info("Nextcloud Office server is not available");
-            $this->appConfig->setSettingsError($error);
-            $this->notifyAdmins();
-        } else {
+        if (empty($error) && $isSuccessful) {
             $this->logger->debug("Nextcloud Office server availability check is finished successfully");
+            return;
+        }
+
+        if (empty($error)) {
+            // was failing, works again: clear the stored error
+            $this->appConfig->setSettingsError("");
+            $this->logger->info("Nextcloud Office server is available again, error state cleared");
+            return;
+        }
+
+        // still or newly failing: keep the latest error
+        $this->logger->info("Nextcloud Office server is not available");
+        $this->appConfig->setSettingsError($error);
+
+        if ($isSuccessful) {
+            // newly failing: notify only on the transition, not on every repeated failure
+            $this->notifyAdmins();
         }
     }
 
