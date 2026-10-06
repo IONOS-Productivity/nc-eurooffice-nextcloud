@@ -69,10 +69,6 @@ class EditorsCheck extends TimedJob {
             $this->logger->debug("Settings are empty");
             return;
         }
-        if (!$this->appConfig->settingsAreSuccessful()) {
-            $this->logger->debug("Settings are not correct");
-            return;
-        }
         $fileUrl = $this->urlGenerator->linkToRouteAbsolute($this->appName . ".callback.emptyfile");
         if (!$this->appConfig->useDemo() && !empty($this->appConfig->getStorageUrl())) {
             $fileUrl = str_replace($this->urlGenerator->getAbsoluteURL("/"), $this->appConfig->getStorageUrl(), $fileUrl);
@@ -92,7 +88,12 @@ class EditorsCheck extends TimedJob {
             $this->appConfig->setSettingsError($error);
             $this->notifyAdmins();
         } else {
-            $this->logger->debug("Nextcloud Office server availability check is finished successfully");
+            if (!$this->appConfig->settingsAreSuccessful()) {
+                $this->appConfig->setSettingsError("");
+                $this->logger->info("Nextcloud Office server is available again, error state cleared");
+            } else {
+                $this->logger->debug("Nextcloud Office server availability check is finished successfully");
+            }
         }
     }
 
