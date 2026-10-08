@@ -53,6 +53,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\L10N\IFactory;
 use OCP\PreConditionNotMetException;
 use OCP\Server;
 use OCP\Share\IShare;
@@ -85,7 +86,8 @@ class EditorApiController extends OCSController {
         private readonly TimezoneService $timezoneService,
         private readonly FileUtility $fileUtility,
         private readonly IAvatarManager $avatarManager,
-        private readonly ExtraPermissions $extraPermissions
+        private readonly ExtraPermissions $extraPermissions,
+        private readonly IFactory $l10nFactory
     ) {
         parent::__construct($appName, $request);
     }
@@ -200,7 +202,7 @@ class EditorApiController extends OCSController {
             ],
             "documentType" => $format["type"],
             "editorConfig" => [
-                "lang" => str_replace("_", "-", $this->trans->getLanguageCode()),
+                "lang" => str_replace("_", "-", $this->l10nFactory->findLanguage()),
                 "region" => str_replace("_", "-", $this->trans->getLocaleCode())
             ]
         ];
@@ -296,7 +298,8 @@ class EditorApiController extends OCSController {
             }
             $params["document"]["permissions"]["protect"] = $canProtect;
 
-            if (isset($shareToken)) {
+            // disable chat and protection for access by share link
+            if (!empty($shareToken)) {
                 $params["document"]["permissions"]["chat"] = false;
                 $params["document"]["permissions"]["protect"] = false;
             }
@@ -317,7 +320,7 @@ class EditorApiController extends OCSController {
         } else {
             $params["editorConfig"]["mode"] = "view";
 
-            if (isset($shareToken) && empty($userId) && !$this->appConfig->getLiveViewOnShare()) {
+            if (!empty($shareToken) && empty($userId) && !$this->appConfig->getLiveViewOnShare()) {
                 $params["editorConfig"]["coEditing"] = [
                     "mode" => "strict",
                     "change" => false
