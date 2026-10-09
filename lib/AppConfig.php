@@ -287,6 +287,11 @@ class AppConfig {
     private string $_jwt_expiration = "jwt_expiration";
 
     /**
+     * The config key for the overall /converter polling deadline (seconds)
+     */
+    private string $_converter_poll_timeout = "converter_poll_timeout";
+
+    /**
      * The config key for store cache
      */
     private readonly ICache $cache;
@@ -1279,7 +1284,22 @@ class AppConfig {
         return (bool)$this->getSystemValue($this->_disableDownload);
     }
     /**
-     * Get the editors check interval
+     * Get the editors check interval.
+     *
+     * Defaults to 5 minutes rather than once a day: Nextcloud's job
+     * scheduler (JobList::getNext()) only re-instantiates a TimedJob, and so
+     * only re-reads its configured interval, once the job's stored
+     * last_checked time arrives - which was itself computed from whatever
+     * interval applied at the previous run. A per-run "check more often
+     * while currently failed" interval can't reliably take effect under
+     * that scheduling model (the next run is parked using the interval from
+     * before the failure was detected, and a failure set outside cron - the
+     * admin settings page, occ eurooffice:documentserver --check - doesn't
+     * touch last_checked at all), so a single fixed interval is used
+     * instead. checkDocServiceUrl() does a healthcheck, a command request,
+     * and a full conversion round-trip, so this is heavier on the document
+     * server than the old default - acceptable for routine availability
+     * monitoring, but raise this value for less frequent checking.
      */
     public function getEditorsCheckInterval(): int {
         $interval = $this->getSystemValue($this->_editors_check_interval);
@@ -1288,7 +1308,7 @@ class AppConfig {
         }
 
         if (empty($interval) && $interval !== 0) {
-            $interval = 60 * 60 * 24;
+            $interval = 60 * 5;
         }
         return (int)$interval;
     }
@@ -1303,6 +1323,30 @@ class AppConfig {
             return 5;
         }
         return (integer)$jwtExp;
+    }
+
+    /**
+     * Get the overall deadline (seconds) for polling /converter for a
+     * synchronous conversion result, settable via config.php for
+     * deployments that need a longer or shorter budget than the default.
+     *
+     * DocumentService::sendRequestToConvertService() signs its JWT once
+     * before the poll loop and reuses it for every poll, so a value set
+     * here much larger than getJwtExpiration() * 60 risks the token
+     * expiring before polling ends, which DocumentServer would reject.
+     * Not a concern with the defaults (120s poll vs. a 5 minute token).
+     */
+    public function getConverterPollTimeout(): int {
+        $timeout = $this->getSystemValue($this->_converter_poll_timeout);
+
+        if (is_string($timeout) && ctype_digit($timeout)) {
+            $timeout = (int)$timeout;
+        }
+
+        if (!is_int($timeout) || $timeout <= 0) {
+            return 120;
+        }
+        return $timeout;
     }
 
     /**

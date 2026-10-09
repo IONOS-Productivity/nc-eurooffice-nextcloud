@@ -31,7 +31,7 @@ permissions:
   contents: read
 
 jobs:
-  # info.xml declares min-version 33 / max-version 35. Deriving the server
+  # info.xml declares min-version 33 / max-version 36. Deriving the server
   # branches from it keeps the suite on versions the app claims to support,
   # instead of whatever master happens to be.
   matrix:
